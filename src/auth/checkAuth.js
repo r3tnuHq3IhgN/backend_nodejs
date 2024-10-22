@@ -37,16 +37,21 @@ const permission = (permission) => {
                 message: 'Permission denied' 
             });
         }
-        if(permission !== 'READ1'){
+        if(permission !== 'READ'){
             return res.status(403).json({ 
-                message: 'Permission denied (not READ1)' 
+                message: 'Permission denied (not READ)' 
             });
         }
         return next();
     }
 }
 
+const asyncHandler = fn => (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 module.exports ={ 
     apiKey,
-    permission
+    permission,
+    asyncHandler
 }

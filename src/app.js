@@ -12,13 +12,31 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+//init database
 require('./databases/init.mongodb')._connect();
 // const { checkOverload } = require('./helpers/check.connect');
 // setInterval(checkOverload, 5000);
 
-
 // init routes
 app.use('/', require('./routes'));
+
+// init error handler
+app.use((req, res, next) => {
+    const error = new Error('Not Found');
+    error.status = 404;
+    next(error);
+});
+
+app.use((error, req, res, next) => {
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
+        error: {
+            code: statusCode,
+            status: 'error',
+            message: error.message || 'Internal Server Error'
+        }
+    });
+});
 
 
 

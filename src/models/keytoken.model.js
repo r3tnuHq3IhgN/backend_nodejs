@@ -9,16 +9,20 @@ var keyTokenSchema = new Schema({
     user:{
         type:Schema.Types.ObjectId,
         required:true,
-        ref:'Shop',
+        ref:'Shop'
     },
     publicKey: {
         type: String,
-        required: true,
+        required: true
         
     },
-    refreshToken: {
+    refreshTokenUsed: {
         type: Array,
-        default: [],
+        default: []
+    },
+    refreshToken: {
+        type: String,
+        required: true
     },
 }, {
     collection: COLLECTION_NAME,

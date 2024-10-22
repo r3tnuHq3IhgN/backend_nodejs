@@ -1,5 +1,5 @@
 const app = require('./src/app.js');
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 
 const server = app.listen(PORT, () => {
@@ -7,7 +7,9 @@ const server = app.listen(PORT, () => {
 });
 
 process.on('SIGINT', () => {
+    console.log('SIGINT signal received: closing server...');
     server.close(() => {
-        console.log(`Process terminated`);
+        console.log('HTTP server closed');
+        process.exit(0); // Explicitly exit the process
     });
 });

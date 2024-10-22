@@ -11,6 +11,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: abcd@1234
+    networks:
+      - app-network
+
+networks:
+  app-network:
 
 volumes:
   mongodb-data:

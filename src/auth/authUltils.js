@@ -51,6 +51,7 @@ const authentication =  asyncHandler( async (req, res, next) => {
         // check user_id from header and decodeUser
         if(user_id !== decodeUser.userId) throw new AuthFailureError('Invalid user');
         req.keyStore = keyStore;
+        req.user = decodeUser;
         console.log('decodeUser::', decodeUser);
         next();
     } catch (error) {

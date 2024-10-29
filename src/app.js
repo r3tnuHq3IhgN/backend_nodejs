@@ -33,6 +33,7 @@ app.use((error, req, res, next) => {
         error: {
             code: statusCode,
             status: 'error',
+            stack: error.stack,
             message: error.message || 'Internal Server Error'
         }
     });

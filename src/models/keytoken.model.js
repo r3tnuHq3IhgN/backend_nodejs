@@ -16,14 +16,19 @@ var keyTokenSchema = new Schema({
         required: true
         
     },
-    refreshTokenUsed: {
-        type: Array,
-        default: []
+    privateKey: {
+        type: String,
+        required: true
+        
     },
     refreshToken: {
         type: String,
         required: true
     },
+    refreshTokenUsed: {
+        type: Array,
+        default: []
+    }
 }, {
     collection: COLLECTION_NAME,
     timestamps: true,

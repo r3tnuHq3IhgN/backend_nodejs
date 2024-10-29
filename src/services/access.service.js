@@ -4,9 +4,9 @@ const shopModel = require('../models/shop.model');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const KeyTokenService = require('./keytoken.service');
-const { createTokenPair } = require('../auth/authUltils');
+const { createTokenPair, verifyJWT } = require('../auth/authUltils');
 const { getInfoData } = require('../utils');
-const { ConflictRequestError, InternalServerError, BadRequestError } = require('../core/error.response');
+const { ConflictRequestError, InternalServerError, BadRequestError, ForbiddenError, AuthFailureError } = require('../core/error.response');
 const { findByEmail } = require('./shop.service');
 const RoleShop  = {
     SHOP: 'SHOP',
@@ -16,6 +16,39 @@ const RoleShop  = {
 }
 
 class AccessService {
+
+    static handleRefreshToken = async ({ refreshToken, user, keyStore }) => {
+        const { userId, email } = user;
+        if(keyStore.refreshTokenUsed.includes(refreshToken)) {
+            await KeyTokenService.removeKeyTokenByUserId(userId);
+            throw new ForbiddenError('Something went wrong. Please login again');
+        }
+        if(keyStore.refreshToken !== refreshToken) {
+            throw new AuthFailureError('Error: Refresh token not match');
+        }
+
+        const foundShop = await findByEmail(email);
+        if(!foundShop) throw new AuthFailureError('Error: Shop not found');
+
+        // create new token pair
+        const tokens = await createTokenPair({ userId, email }, keyStore.publicKey, keyStore.privateKey);
+
+        // update new refreshToken and add to refreshTokenUsed
+        await keyStore.updateOne({
+            $set: {
+                refreshToken: tokens.refreshToken
+            },
+            $addToSet: {
+                refreshTokenUsed: refreshToken
+            }
+        });
+
+        return {
+            shop: getInfoData({ fields: [ 'name', 'email'], object: foundShop }),
+            tokens
+        }
+    }
+
     static logOut = async (keyStore) => {
         return await KeyTokenService.removeKeyTokenById( keyStore._id);
 
@@ -46,13 +79,14 @@ class AccessService {
             }
         });
 
-        //4 - Return token pair
+        //4 - Return token pair {accessToken, refreshToken}
         const tokens = await createTokenPair({ userId: foundShop._id, email }, publicKey, privateKey);
 
-        //5 - Create key token
+        //5 - Create of update key token
         await KeyTokenService.createKeyToken({
             userId: foundShop._id,
             publicKey,
+            privateKey,
             refreshToken: tokens.refreshToken
         });
         return {
@@ -91,18 +125,21 @@ class AccessService {
                     }
                 });
 
+                //const publickeyObject = crypto.createPublicKey(publicKeyString);
+                const tokens = await createTokenPair({ userId: newShop._id, email }, publicKey, privateKey);
+
                 // step 2: create public key token
                 const publicKeyString = await KeyTokenService.createKeyToken({
                     userId: newShop._id,
-                    publicKey
+                    publicKey,
+                    privateKey,
+                    refreshToken: tokens.refreshToken
                 });
 
                 if(!publicKeyString) {
                     throw new InternalServerError('Error creating publickey token');
                 }
-                //const publickeyObject = crypto.createPublicKey(publicKeyString);
-                const tokens = await createTokenPair({ userId: newShop._id, email }, publicKeyString, privateKey);
-                console.log({tokens});
+                console.log('tokens::', tokens);
                 return {
                     code: '201',
                     message: 'Shop created successfully',

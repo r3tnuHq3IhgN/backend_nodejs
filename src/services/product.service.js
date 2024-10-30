@@ -2,20 +2,21 @@
 
 const { product, clothing, electronic } = require('../models/product.model');
 const { BadRequestError } = require('../core/error.response');
-const { mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 
 // Factory pattern
-class FactoryProduct {
-    static async createProduct(type, data) {
-        switch (type) {
-            case 'Clothings':
-                return new Clothing(data).createProduct();
-            case 'Electronics':
-                return new Electronics(data).createProduct();
-            default:
-                throw new BadRequestError('Error: Product type not found');
-        }
+class ProductFactory {
+   static productRegistry = {};
 
+    static registerProductType(type, class_ref) {
+        ProductFactory.productRegistry[type] = class_ref;
+    }
+
+    // Use strategy pattern with factory pattern to create product by mapping product type
+    static async createProduct(type, data){
+        const productClass = ProductFactory.productRegistry[type];
+        if(!productClass) return new BadRequestError('Error: Product type not found');
+        return new productClass(data).createProduct();
     }
 }
 
@@ -44,7 +45,6 @@ class Clothing extends Product {
         try {
             const session = await mongoose.startSession();
             session.startTransaction();
-            console.log('user::', this.product_shop);
             const newClothing = await clothing.create(  {
                 ... this.product_atrributes,
                 product_shop: this.product_shop      
@@ -53,17 +53,17 @@ class Clothing extends Product {
     
             const newProduct = super.createProduct(newClothing._id);
             if(!newProduct) return new BadRequestError('Error: Create product failed');
+
             await session.commitTransaction();
             await session.endSession();
             return newProduct;
-            
         } catch (error) {
             throw error;
         }
     }
 }
 
-class Electronics extends Product {
+class Electronic extends Product {
     async createProduct() {
         try {
             const session = await mongoose.startSession();
@@ -86,4 +86,8 @@ class Electronics extends Product {
     }
 }
 
-module.exports = FactoryProduct
+// register product type
+ProductFactory.registerProductType('Clothings', Clothing);
+ProductFactory.registerProductType('Electronics', Electronic);
+
+module.exports = ProductFactory;

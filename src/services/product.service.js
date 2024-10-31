@@ -2,11 +2,13 @@
 
 const { product, clothing, electronic } = require('../models/product.model');
 const { BadRequestError } = require('../core/error.response');
+const ProductRepository = require('../models/repositories/product.repo');
 const mongoose = require('mongoose');
 
 // Factory pattern
 class ProductFactory {
    static productRegistry = {};
+   const 
 
     static registerProductType(type, class_ref) {
         ProductFactory.productRegistry[type] = class_ref;
@@ -18,22 +20,61 @@ class ProductFactory {
         if(!productClass) return new BadRequestError('Error: Product type not found');
         return new productClass(data).createProduct();
     }
+
+    //put
+    static async publishedProductByShop(shopId, productId) {
+        return await ProductRepository.publishedProductByShop(shopId, productId);
+    }
+    
+    static async unpublishedProductByShop(shopId, productId) {
+        return await ProductRepository.unpublishedProductByShop(shopId, productId);
+    }
+
+
+    //query
+    static async getAllDraftProductsOfShop(shopId) {
+        return await ProductRepository.getAllDraftProductsOfShop(shopId);
+    }
+    static async getAllPublishedProductsOfShop(shopId) {
+        return await ProductRepository.getAllPublishedProductsOfShop(shopId);
+    }
+
+    //search
+    static async searchProductsByUser(keyword) {
+        return await ProductRepository.searchProductsByUser(keyword);
+    }
 }
 
 class Product {
     constructor({
-        product_name,product_thumb,product_description,product_price,
-        product_quantity,product_type,product_shop,product_atrributes
+        product_name,
+        product_thumb,
+        product_description,
+        product_price,
+        product_slug,
+        product_quantity,
+        product_type,
+        product_atrributes,
+        product_shop,
+        product_ratingsAvg,
+        product_variations,
+        isDraft,
+        isPublished,
     }) {
         this.product_name = product_name;
         this.product_thumb = product_thumb;
         this.product_description = product_description;
         this.product_price = product_price;
+        this.product_slug = product_slug;
         this.product_quantity = product_quantity;
         this.product_type = product_type;
-        this.product_shop = product_shop;
         this.product_atrributes = product_atrributes;
-    }
+        this.product_shop = product_shop;
+        this.product_ratingsAvg = product_ratingsAvg;
+        this.product_variations = product_variations;
+        this.isDraft = isDraft;
+        this.isPublished = isPublished;
+    };
 
     async createProduct(_id) {
         return await product.create({ ...this, _id });

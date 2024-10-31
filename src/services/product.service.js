@@ -32,11 +32,13 @@ class ProductFactory {
 
 
     //query
-    static async getAllDraftProductsOfShop(shopId) {
-        return await ProductRepository.getAllDraftProductsOfShop(shopId);
+    static async getAllDraftProductsOfShop({ shopId, limit = 50, skip = 0 }) {
+        const query = { product_shop: shopId, isDraft: true };
+        return await ProductRepository.getAllDraftProductsOfShop({ query, limit, skip });
     }
-    static async getAllPublishedProductsOfShop(shopId) {
-        return await ProductRepository.getAllPublishedProductsOfShop(shopId);
+    static async getAllPublishedProductsOfShop(shopId, limit = 50, skip = 0) {
+        const query = { product_shop: shopId, isPublished: true };
+        return await ProductRepository.getAllPublishedProductsOfShop({ query, limit, skip });
     }
 
     //search

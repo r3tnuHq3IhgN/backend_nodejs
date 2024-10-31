@@ -6,23 +6,22 @@ class ProductRepository {
     async createProduct(data) {
         return await product.create(data);
     }
-
-    static async getAllDraftProductsOfShop(shopId) {
-        return await product.find({ product_shop: shopId, isDraft: true })
+    
+    async queryProduct({ query, limit, skip }) {
+        return await product.find(query)
         .sort({ createdAt: -1 })
-        .skip(0)
-        .limit(10)
+        .skip(skip)
+        .limit(limit)
         .lean()
         .exec();
     }
 
-    static async getAllPublishedProductsOfShop(shopId) {
-        return await product.find({ product_shop: shopId, isPublished: true })
-        .sort({ createdAt: -1 })
-        .skip(0)
-        .limit(10)
-        .lean()
-        .exec();
+    static async getAllDraftProductsOfShop({ query, limit, skip }) {
+        return queryProduct();
+    }
+
+    static async getAllPublishedProductsOfShop({ query, limit, skip }) {
+        return queryProduct();
     }
 
     static async publishedProductByShop(shopId, productId) {
@@ -51,5 +50,4 @@ class ProductRepository {
         .lean()
     }
 }
-
 module.exports = ProductRepository;

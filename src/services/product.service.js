@@ -3,12 +3,12 @@
 const { product, clothing, electronic } = require('../models/product.model');
 const { BadRequestError } = require('../core/error.response');
 const ProductRepository = require('../models/repositories/product.repo');
+const { removeUndefinedValues, updateNestedObject } = require('../utils/index');
 const mongoose = require('mongoose');
 
 // Factory pattern
 class ProductFactory {
    static productRegistry = {};
-   const 
 
     static registerProductType(type, class_ref) {
         ProductFactory.productRegistry[type] = class_ref;
@@ -17,9 +17,27 @@ class ProductFactory {
     // Use strategy pattern with factory pattern to create product by mapping product type
     static async createProduct(type, data){
         const productClass = ProductFactory.productRegistry[type];
+        console.log('productClass_create::', productClass);
         if(!productClass) return new BadRequestError('Error: Product type not found');
         return new productClass(data).createProduct();
     }
+
+    //update product
+    static async updateProduct(productId, data) {
+
+        const foundProduct = await product.findById(productId);
+        if(!foundProduct) return new BadRequestError('Error: Product not found');
+
+        const productType = foundProduct.product_type;
+        const productClass = ProductFactory.productRegistry[productType];
+
+        if (!productClass || typeof productClass.prototype.updateProduct !== 'function') {
+            throw new BadRequestError('Error: updateProduct method not found on product class');
+        }
+
+        return await new productClass(foundProduct).updateProduct(productId, removeUndefinedValues(data));
+    }
+
 
     //put
     static async publishedProductByShop(shopId, productId) {
@@ -44,6 +62,13 @@ class ProductFactory {
     //search
     static async searchProductsByUser(keyword) {
         return await ProductRepository.searchProductsByUser(keyword);
+    }
+
+    //find 
+    static async findAllProducts({ limit = 50, sort = 'ctime',page = 1, filter = { isPublished: true} }) {
+        return await ProductRepository.findAllProducts({ limit, sort, page, filter,
+            select: ['product_name', 'product_thumb', 'product_price', 'product_slug', 'product_ratingsAvg'] 
+        });
     }
 }
 
@@ -81,6 +106,15 @@ class Product {
     async createProduct(_id) {
         return await product.create({ ...this, _id });
     }
+
+    async updateProduct(productId, data) {
+        const  payload = removeUndefinedValues(data);
+        return await ProductRepository.updateProductById({
+            productId,
+            data: payload,
+            model: product
+        });
+    }
 }
 
 class Clothing extends Product {
@@ -104,6 +138,22 @@ class Clothing extends Product {
             throw error;
         }
     }
+
+    async updateProduct(productId, data) {
+        const objParams = this;
+        const payload = removeUndefinedValues(data.product_atrributes);
+
+        if(objParams.product_atrributes)
+        {
+            console.log('objParams::', objParams);
+            await ProductRepository.updateProductById({ 
+                productId,
+                data: payload,
+                model: clothing
+            });
+        }
+        return await super.updateProduct(productId, updateNestedObject(data));
+    }
 }
 
 class Electronic extends Product {
@@ -126,6 +176,23 @@ class Electronic extends Product {
         } catch (error) {
             throw error;
         }
+    }
+
+    async updateProduct(productId, data) {
+        const objParams = this;
+        const payload = removeUndefinedValues(data.product_atrributes);
+        
+        if(objParams.product_atrributes ) {
+            await ProductRepository.updateProductById({
+                productId,
+                data: payload,
+                model: electronic
+            });
+        }
+
+        // console.log('data::', data);
+        // console.log('data1::', updateNestedObject(data));
+        return await super.updateProduct(productId, updateNestedObject(data));
     }
 }
 

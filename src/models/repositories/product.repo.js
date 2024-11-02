@@ -1,5 +1,6 @@
 'use strict'
 const { product } = require('../product.model');
+const { getSelectData } = require('../../utils/index');
 
 class ProductRepository {
 
@@ -14,6 +15,10 @@ class ProductRepository {
         .limit(limit)
         .lean()
         .exec();
+    }
+
+    static async updateProductById({ productId, data, model, isNew = true }) {
+        return await model.findByIdAndUpdate(productId, data, { new: isNew });
     }
 
     static async getAllDraftProductsOfShop({ query, limit, skip }) {
@@ -49,5 +54,18 @@ class ProductRepository {
         .sort({ score: { $meta: "textScore" } })
         .lean()
     }
+
+    static async findAllProducts(limit, sort, page, filter, select) {
+        const skip = (page - 1) * limit;
+        const sortBy = sort === 'ctime' ? { _id: -1} : { _id: 1};
+        return await product.find(filter)
+        .sort(sortBy)
+        .skip(skip)
+        .limit(limit)
+        .select(getSelectData(select))
+        .lean()
+        .exec();
+    }
+
 }
 module.exports = ProductRepository;

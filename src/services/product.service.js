@@ -3,6 +3,7 @@
 const { product, clothing, electronic } = require('../models/product.model');
 const { BadRequestError } = require('../core/error.response');
 const ProductRepository = require('../models/repositories/product.repo');
+const InventoryRepository = require('../models/repositories/inventory.repo');
 const { removeUndefinedValues, updateNestedObject } = require('../utils/index');
 const mongoose = require('mongoose');
 
@@ -104,7 +105,15 @@ class Product {
     };
 
     async createProduct(_id) {
-        return await product.create({ ...this, _id });
+        const newProduct = await product.create({ ...this, _id });
+        if(newProduct) {
+            await InventoryRepository.createInventory({
+                inventory_product: newProduct._id,
+                inventory_stock: this.product_quantity,
+                inventory_shop: this.product_shop
+            });
+        }
+        return newProduct;
     }
 
     async updateProduct(productId, data) {

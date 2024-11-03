@@ -1,6 +1,11 @@
 'use strict'
 
 const _ = require('lodash');
+const { Types } = require('mongoose');
+
+const convertToObjectId = (id) => {
+    return Types.ObjectId(id);
+}
 
 const getInfoData = ({ fields = [], object = [] }) => {
     return _.pick(object, fields);
@@ -35,5 +40,6 @@ module.exports = {
     getInfoData,
     getSelectData,
     removeUndefinedValues,
-    updateNestedObject
+    updateNestedObject,
+    convertToObjectId
 }

@@ -67,5 +67,16 @@ class ProductRepository {
         .exec();
     }
 
+    // get shop id by product id => CartService
+    static async getShopIdByProductId(productId) {
+        const foundProduct = await product.findById(productId).lean();
+        return foundProduct ? foundProduct.product_shop : null;
+    }
+
+    //
+    static async getProductPriceById(productId) {
+        const foundProduct = await product.findById(productId).lean();
+        return foundProduct ? foundProduct.product_price : null;
+    }
 }
 module.exports = ProductRepository;

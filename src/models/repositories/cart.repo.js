@@ -3,6 +3,11 @@
 const { cart } = require('../cart.model');
 
 class CartRepository {
+
+    static async getCardById(cartId, userId) {
+        return await cart.findOne({ _id: cartId, cart_state: 'active', cart_user_id: userId}).lean();
+    }
+
     static async getUserCart(userId) {
         return await cart.findOne({ cart_user_id: userId }).lean();
     }

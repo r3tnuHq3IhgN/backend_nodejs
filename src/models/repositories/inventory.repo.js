@@ -4,7 +4,7 @@ const { inventory } = require('../inventory.model');
 
 class InventoryRepository {
 
-    async createInventory(data) {
+    static async createInventory(data) {
         return await inventory.create(data);
     }
 
@@ -13,4 +13,4 @@ class InventoryRepository {
     }
 }
 
-module.exports = new InventoryRepository;
+module.exports = InventoryRepository;

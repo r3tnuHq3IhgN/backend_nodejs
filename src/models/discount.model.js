@@ -1,9 +1,12 @@
 'use strict'
 
 const { model, Schema, Types } = require('mongoose');
+const moment = require('moment');
 
 const DOCUMENT_NAME = 'Discount';
 const COLLECTION_NAME = 'Discounts';
+
+
 
 // Declare the Schema of the Mongo model
 var discountSchema = new Schema({
@@ -41,12 +44,12 @@ var discountSchema = new Schema({
     discount_start_date: {
         type: Date,
         required: true,
-        default: Date.now
+        default: moment().add().toDate()
     },
     discount_end_date: {
         type: Date,
-        required: true,
-        default: Date.now
+        required: true, 
+        default: moment().add(1, 'months').toDate()
     },
     discount_limit: {
         type: Number,
@@ -92,6 +95,7 @@ var discountSchema = new Schema({
     timestamps: true,
 });
 
+console.log('Discount Schema:', discountSchema.discount_end_date);
 //Export the model
 module.exports = {
     discount: model(DOCUMENT_NAME, discountSchema)

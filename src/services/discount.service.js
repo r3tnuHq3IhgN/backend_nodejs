@@ -1,7 +1,7 @@
 'use strict'
 
 const DiscountRepository = require('../models/repositories/discount.repo');
-const discount = require('../models/discount.model');
+const {discount} = require('../models/discount.model');
 const { convertToObjectId } = require('../utils');
 const { BadRequestError } = require('../core/error.response');
 const ProductRepository = require('../models/repositories/product.repo');
@@ -28,12 +28,12 @@ class DiscountService {
         if(new Date() < new Date(start_date) || new Date() > new Date(end_date)) {
             throw new BadRequestError('Discount not within valid date range');
         }
-        const discount = await discount.findOne({
-            discount_code: code,
-            discount_shop_id: convertToObjectId(discount_shop_id)
-        }).lean();
 
-        if(discount) {
+        const foundDiscount = await DiscountRepository.findDiscountByCodeAndShopId({
+            code, shop_id: discount_shop_id
+        });
+
+        if(foundDiscount) {
             throw new BadRequestError('Discount code already exists');
         }
 
@@ -44,8 +44,8 @@ class DiscountService {
             discount_type: discount_type,
             discount_value: discount_value,
             discount_min_order_value: discount_min_order_value,
-            discount_start_date: new Date(start_date),
-            discount_end_date: new Date(end_date),
+            discount_start_date: start_date,
+            discount_end_date: end_date,
             discount_limit: discount_limit,
             discount_used_count: discount_used_count,
             discount_shop_id: convertToObjectId(discount_shop_id)

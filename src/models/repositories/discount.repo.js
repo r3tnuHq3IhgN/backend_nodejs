@@ -20,12 +20,13 @@ class DiscountRepository {
             return await discount.find({ discount_shop_id: convertToObjectId(shop_id) }).lean();
         }
 
-        static async checkDiscountExistence({ code, shop_id }) {
+        static async findDiscountByIdAndShopId({ _id, shop_id }) {
             return await discount.findOne({
-                discount_code: code,
+                _id: convertToObjectId(_id),
                 discount_shop_id: convertToObjectId(shop_id)
             }).lean();
         }
+
         static async findDiscountByCodeAndShopId({ code, shop_id }) {
             return await discount.findOne({
                 discount_code: code,

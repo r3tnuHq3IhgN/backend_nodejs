@@ -67,16 +67,30 @@ class ProductRepository {
         .exec();
     }
 
-    // get shop id by product id => CartService
+    // get shop id by product id => CartService: addProductToCart
     static async getShopIdByProductId(productId) {
         const foundProduct = await product.findById(productId).lean();
         return foundProduct ? foundProduct.product_shop : null;
     }
 
-    //
+    // get product price by id => CartService: addProductToCart
     static async getProductPriceById(productId) {
         const foundProduct = await product.findById(productId).lean();
         return foundProduct ? foundProduct.product_price : null;
+    }
+
+    // check list products by id => CheckoutService: checkoutReview
+    static async checkProductByServer({ item_products }) {
+        return await Promise.all(item_products.map(async item_product => {
+            const foundProduct = await product.findById(item_product.product_id).lean();
+           if(foundProduct) {
+                return {
+                    product_id: foundProduct._id,
+                    quantity: item_product.quantity,
+                    price: foundProduct.product_price
+                }
+           }
+        }));
     }
 }
 module.exports = ProductRepository;

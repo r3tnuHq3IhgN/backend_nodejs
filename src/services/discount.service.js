@@ -55,7 +55,7 @@ class DiscountService {
 
     // Update discount code
     static async updateDiscountCode(data) {
-        const discount = await DiscountRepository.checkDiscountExistence({
+        const discount = await DiscountRepository.findDiscountByCodeAndShopId({
             code: data.code,
             discount_shop_id: convertToObjectId(data.shop_id)
         });
@@ -71,7 +71,7 @@ class DiscountService {
         code, shop_id
     }) {
 
-        const discount = await DiscountRepository.checkDiscountExistence({
+        const discount = await DiscountRepository.findDiscountByCodeAndShopId({
             code, shop_id
         });
 
@@ -111,14 +111,25 @@ class DiscountService {
 
     // Calculate discount amount
     static async getDiscountAmount({
-        code, shop_id, user_id, products
+        _id, shop_id, products
     }) {
-        const discount = await DiscountRepository.checkDiscountExistence({
-            code, shop_id
+
+        console.log('list products: ', products);
+        const discount = await DiscountRepository.findDiscountByIdAndShopId({
+            _id, shop_id
         });
         if(!discount) throw new BadRequestError('Discount code does not exist');
 
-        const { discount_status, discount_limit, discount_min_order_value, discount_type, discount_value } = discount;
+        const { 
+            discount_status, 
+            discount_limit, 
+            discount_min_order_value, 
+            discount_type, 
+            discount_value, 
+            discount_end_date,
+            discount_start_date
+        } = discount;
+
         if(discount_status === 'inactive') throw new BadRequestError('Discount code is inactive');
         if(discount_limit === 0) throw new BadRequestError('Discount code has been exhausted');
         if(new Date() < discount_start_date || new Date() > discount_end_date) throw new BadRequestError('Discount code is not within valid date range');
@@ -128,7 +139,7 @@ class DiscountService {
         if(discount_min_order_value > totalOrder) {
             throw new BadRequestError('Order value is less than minimum order value');
         }
-
+        let amount = totalOrder;
         if(discount_type === 'fixed_amount') {
             amount -= discount_value;
         }
@@ -137,7 +148,7 @@ class DiscountService {
         }
         return {
             totalOrder,
-            amount,
+            priceAfterDiscount: amount,
             discount
         }
     }

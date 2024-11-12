@@ -10,6 +10,13 @@ class CheckoutController {
            metadata: await CheckoutService.checkoutReview(req.body)
        }).send(res);
     }
+
+    async checkoutOrder(req, res, next) {
+        new SuccessResponse({
+            message: 'Checkout order successfully',
+            metadata: await CheckoutService.checkoutOrder(req.body)
+        }).send(res);
+    }
 }
 
 module.exports = new CheckoutController();

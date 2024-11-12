@@ -17,6 +17,10 @@ class ProductRepository {
         .exec();
     }
 
+    static async getProductById(productId) {
+        return await product.findById(productId).lean();
+    }
+
     static async updateProductById({ productId, data, model, isNew = true }) {
         return await model.findByIdAndUpdate(productId, data, { new: isNew });
     }

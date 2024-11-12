@@ -13,6 +13,9 @@ router.use(authentication);
 // checkout review
 router.post('/review', asyncHandler(CheckoutController.checkoutReview));
 
+// checkout order
+router.post('/order', asyncHandler(CheckoutController.checkoutOrder));
+
 module.exports = router;
 
 

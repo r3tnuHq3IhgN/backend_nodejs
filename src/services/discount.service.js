@@ -114,7 +114,6 @@ class DiscountService {
         _id, shop_id, products
     }) {
 
-        console.log('list products: ', products);
         const discount = await DiscountRepository.findDiscountByIdAndShopId({
             _id, shop_id
         });

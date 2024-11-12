@@ -8,8 +8,13 @@ class InventoryRepository {
         return await inventory.create(data);
     }
 
-    async updateInventoryById({ inventoryId, data, model, isNew = true }) {
+    static async updateInventoryById({ inventoryId, data, model, isNew = true }) {
         return  await model.findByIdAndUpdate(inventoryId, data, { new: isNew });
+    }
+
+    // Find inventory and update
+    static async findInventoryAndUpdate({ query, updateSet, options }) {
+        return await inventory.findOne(query).updateOne(updateSet, options);
     }
 }
 

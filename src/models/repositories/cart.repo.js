@@ -38,6 +38,18 @@ class CartRepository {
     static async deleteCart(userId) {
         return await cart.findOneAndDelete({ cart_user_id: userId });
     }
+
+    // Remove product from cart by productId
+    static async removeProductFromCart({ userId, cartId, products }) {
+        return await cart.findOneAndUpdate({
+            cart_user_id: userId,
+            _id: cartId
+        }, {
+            $pull: {
+                cart_products: { _id: { $in: products } }
+            }
+        }, { new: true });
+    }
 }
 
 module.exports = CartRepository;

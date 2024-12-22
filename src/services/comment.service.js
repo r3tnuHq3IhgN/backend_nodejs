@@ -1,8 +1,8 @@
 'use strict'
 
-const CommentRepository = require('../models/repositories/comment.repo');
 const Comment = require('../models/comment.model');
 const { convertToObjectId } = require('../utils');
+const ProductRepository = require('../models/repositories/product.repo');
 
 class CommentService {
     static async createComment({
@@ -79,6 +79,38 @@ class CommentService {
         }).sort({ comment_left: 1 }).limit(limit).skip(offset);
         return comments;
 
+    }
+
+    static async deleteComments({ commentId, productId }) {
+        const foundProduct = await ProductRepository.getProductById(productId);
+        if(!foundProduct) throw new Error('Product not found');
+        const comment = await Comment.findById(convertToObjectId(commentId));
+        if(!comment) throw new Error('Comment not found');
+
+        const leftValue = comment.comment_left;
+        const rightValue = comment.comment_right;
+        const width = rightValue - leftValue + 1;
+
+        await Comment.deleteMany({
+            comment_product_id: convertToObjectId(productId),
+            comment_left: { $gte: leftValue, $lte: rightValue }
+        });
+
+        await Comment.updateMany({
+            comment_product_id: convertToObjectId(productId),
+            comment_left: { $gt: rightValue }
+        }, {
+            $inc: { comment_left: -width }
+        });
+
+        await Comment.updateMany({
+            comment_product_id: convertToObjectId(productId),
+            comment_right: { $gt: rightValue }
+        }, {
+            $inc: { comment_right: -width }
+        });
+
+        return true;
     }
 
 }

@@ -95,7 +95,6 @@ var discountSchema = new Schema({
     timestamps: true,
 });
 
-console.log('Discount Schema:', discountSchema.discount_end_date);
 //Export the model
 module.exports = {
     discount: model(DOCUMENT_NAME, discountSchema)

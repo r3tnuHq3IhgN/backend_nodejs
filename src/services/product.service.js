@@ -4,8 +4,9 @@ const { product, clothing, electronic } = require('../models/product.model');
 const { BadRequestError } = require('../core/error.response');
 const ProductRepository = require('../models/repositories/product.repo');
 const InventoryRepository = require('../models/repositories/inventory.repo');
-const { removeUndefinedValues, updateNestedObject } = require('../utils/index');
+const { removeUndefinedValues, updateNestedObject, convertToObjectId } = require('../utils/index');
 const mongoose = require('mongoose');
+const { pushNotiToSystem } = require('./notification.service');
 
 // Factory pattern
 class ProductFactory {
@@ -112,6 +113,15 @@ class Product {
                 inventory_stock: this.product_quantity,
                 inventory_shop: this.product_shop
             });
+            pushNotiToSystem({
+                noti_type: 'Shop-001',
+                noti_sender_id: newProduct._id,
+                noti_receiver_id: newProduct._id,
+                noti_options: { 
+                    product_id: newProduct._id,
+                    product_name: this.product_name,
+                }
+            }).then(console.log).catch(console.error);
         }
         return newProduct;
     }

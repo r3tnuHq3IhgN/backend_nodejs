@@ -15,8 +15,49 @@ services:
       - app-network
     restart: unless-stopped
 
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka-container
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft Configuration
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    volumes:
+      - kafka-data:/bitnami
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-container
+    ports:
+      - "5672:5672"     # RabbitMQ AMQP port
+      - "15672:15672"   # RabbitMQ Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    restart: unless-stopped
+
 networks:
   app-network:
 
 volumes:
   mongodb-data:
+  kafka-data:
+  rabbitmq-data:
